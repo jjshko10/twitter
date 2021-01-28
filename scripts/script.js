@@ -13,12 +13,26 @@ class FetchData {
 }
 
 class Twitter {
-    constructor({ user, listElem, modalElems, tweetElems, classDeleteTweet, classLikeTweet }) {
+    constructor({ 
+            user, 
+            listElem, 
+            modalElems, 
+            tweetElems, 
+            classDeleteTweet, 
+            classLikeTweet, 
+            sortElem,
+            showUserPostElem,
+            showLikedPostElem,
+     }) 
+     {
         const fetchData = new FetchData()
         this.user = user;
         this.tweets = new Posts();
         this.elements = {
             listElem: document.querySelector(listElem),
+            sortElem: document.querySelector(sortElem),
+            showUserPostElem: document.querySelector(showUserPostElem),
+            showLikedPostElem: document.querySelector(showLikedPostElem),
             modal: modalElems,
             tweetElems,
         }
@@ -26,6 +40,7 @@ class Twitter {
             classDeleteTweet,
             classLikeTweet
         };
+        this.sortDate = true;
         
         fetchData.getPost()
             .then(data => {
@@ -37,12 +52,17 @@ class Twitter {
         this.elements.tweetElems.forEach(this.addTweet, this);
 
         this.elements.listElem.addEventListener('click', this.handlerTweet);
+        this.elements.sortElem.addEventListener('click', this.changeSort);
+
+        this.elements.showUserPostElem.addEventListener('click', this.showUserPost)
+        this.elements.showLikedPostElem.addEventListener('click', this.showLikedPost)
     }
 
     renderPosts(posts) {
+        const sortPost = posts.sort(this.sortFields());
         this.elements.listElem.textContent = '';
 
-        posts.forEach(({ id, userName, nickname, getDate, text, img, likes, liked }) => {
+        sortPost.forEach(({ id, userName, nickname, getDate, text, img, likes, liked }) => {
             this.elements.listElem.insertAdjacentHTML('beforeend', `
                 <li>
                     <article class="tweet">
@@ -77,16 +97,18 @@ class Twitter {
         })
     }
 
-    showUserPost() {
-
+    showUserPost = () => {
+        const post = this.tweets.posts.filter(item => item.nickname === this.user.nick);
+        this.renderPosts(post);
     }
 
-    showLikesPost() {
-
+    showLikedPost = () => {
+        const post = this.tweets.posts.filter(item => item.liked);
+        this.renderPosts(post);
     }
 
     showAllPost() {
-        this.renderPosts(this.tweets.posts)
+        this.renderPosts(this.tweets.posts);
     }
 
     handlerModal({ button, modal, overlay, close }) {
@@ -162,6 +184,23 @@ class Twitter {
             this.showAllPost();
         }
     }
+
+    changeSort = () => {
+        this.sortDate = !this.sortDate;
+        this.showAllPost();
+    }
+
+    sortFields() {
+        if (this.sortDate) {
+            return (a, b) => {
+                const dateA = new Date(a.postDate);
+                const dateB = new Date(b.postDate);
+                return dateB - dateA;
+            }
+        } else {
+            return (a, b) => b.likes - a.likes;
+        }
+    }
 }
 
 class Posts {
@@ -178,8 +217,7 @@ class Posts {
     }
 
     likePost(id) {
-        /*console.log(id)
-        console.log(this)*/
+       // console.log(id)
         this.posts.forEach(item => {
             if (item.id === id) {
                 console.log(item)
@@ -264,5 +302,8 @@ const twitter = new Twitter({
     classLikeTweet: {
         like: 'tweet__like',
         active: 'tweet__like_active',
-    }
+    },
+    sortElem: '.header__link_sort',
+    showUserPostElem: '.header__link_profile',
+    showLikedPostElem: '.header__link_likes',
 })
