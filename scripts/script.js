@@ -179,7 +179,7 @@ class Twitter {
             this.tweets.deletePost(target.dataset.id);
             this.showAllPost();
         }
-        if (target.classList.contains(this.class.classLikeTweet)) {
+        if (target.classList.contains(this.class.classLikeTweet.like)) {
             this.tweets.likePost(target.dataset.id);
             this.showAllPost();
         }
